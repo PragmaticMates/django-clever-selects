@@ -2,13 +2,15 @@ django-clever-selects
 =====================
 
 Chained select box widget for Django framework using AJAX requests. Chains select boxes together so the values change depending on the parent value.
+
 Tested on Django 1.4.5.
 
 
 Requirements
 ------------
-Django
-jQuery
+- Django
+
+- jQuery
 
 
 Installation
@@ -16,16 +18,19 @@ Installation
 
 1. Install python library using pip: pip install django-clever-selects
 
-2. Add `clever_selects` to `INSTALLED_APPS` in your Django settings file
+2. Add ``clever_selects`` to ``INSTALLED_APPS`` in your Django settings file
 
-3. Add `clever_selects_extras` to your {% load %} statement and put {% clever_selects_js_import %} tag before closing </body> element.
-It is important to load clever-selects.js file after body content, so do not put it in the <head></head>!
+3. Add ``clever_selects_extras`` to your ``{% load %}`` statement and put ``{% clever_selects_js_import %}`` tag before closing ``</body>`` element. It is important to load clever-selects.js file after body content, so do not put it in the <head></head>!
 
 
 Usage
 -----
 
-Form must inherit from ChainedChoicesForm which loads the options when there is already an instance.
+Forms
+'''''
+
+Form must inherit from ``ChainedChoicesMixin`` (or from ``ChainedChoicesForm`` / ``ModelChainedChoicesForm``, depends on your needs)
+which loads the options when there is already an instance or initial data::
 
     from clever_selects.form_fields import ChainedChoiceField
     from clever_selects.forms import ChainedChoicesForm
@@ -52,8 +57,10 @@ Form must inherit from ChainedChoicesForm which loads the options when there is 
 
 Notice that ajax URLs could differ of each field for different purposes. See example project for more use cases.
 
+Views
+'''''
 
-Ajax call is made whenever the parent field is changed. You must set up the ajax URL to return json list of lists.
+Ajax call is made whenever the parent field is changed. You must set up the ajax URL to return json list of lists::
 
     class AjaxChainedView(BaseDetailView):
         """
@@ -78,7 +85,7 @@ Ajax call is made whenever the parent field is changed. You must set up the ajax
             return response
 
 
-Or you can use ChainedSelectChoicesView class helper:
+Or you can use ``ChainedSelectChoicesView`` class helper::
 
     class AjaxChainedView(ChainedSelectChoicesView):
         def get_choices(self):
@@ -88,6 +95,14 @@ Or you can use ChainedSelectChoicesView class helper:
             return tuple(zip(vals_list, vals_list))
 
 
-Don't forget to update your urls.py:
+Don't forget to update your urls.py::
 
     url(r'^ajax/custom-chained-view-url/$', AjaxChainedView.as_view(), name='ajax_chained_view'),
+
+Authors
+-------
+
+Library is by `Erik Telepovsky` from `Pragmatic Mates`_. See `our other libraries`_.
+
+.. _Pragmatic Mates: http://www.pragmaticmates.com/
+.. _our other libraries: https://github.com/PragmaticMates
