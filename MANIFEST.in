@@ -1,0 +1,2 @@
+include README.rst
+recursive-include clever_selects/static *

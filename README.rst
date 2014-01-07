@@ -1,0 +1,93 @@
+django-clever-selects
+=====================
+
+Chained select box widget for Django framework using AJAX requests. Chains select boxes together so the values change depending on the parent value.
+Tested on Django 1.4.5.
+
+
+Requirements
+------------
+Django
+jQuery
+
+
+Installation
+------------
+
+1. Install python library using pip: pip install django-clever-selects
+
+2. Add `clever_selects` to `INSTALLED_APPS` in your Django settings file
+
+3. Add `clever_selects_extras` to your {% load %} statement and put {% clever_selects_js_import %} tag before closing </body> element.
+It is important to load clever-selects.js file after body content, so do not put it in the <head></head>!
+
+
+Usage
+-----
+
+Form must inherit from ChainedChoicesForm which loads the options when there is already an instance.
+
+    from clever_selects.form_fields import ChainedChoiceField
+    from clever_selects.forms import ChainedChoicesForm
+
+
+    class SimpleChainForm(ChainedChoicesForm):
+        first_field = ChoiceField(choices=(('', '------------'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5'), ))
+        second_field = ChainedChoiceField(parent_field='first_field', ajax_url=reverse_lazy('ajax_chained_view'))
+
+
+    class MultipleChainForm(ChainedChoicesForm):
+        first_field = ChoiceField(choices=(('', '------------'), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10), ))
+        second_field = ChainedChoiceField(parent_field='first_field', ajax_url=reverse_lazy('ajax_chained_view'))
+        third_field = ChainedChoiceField(parent_field='second_field', ajax_url=reverse_lazy('ajax_chained_view'))
+        fourth_field = ChainedChoiceField(parent_field='third_field', ajax_url=reverse_lazy('ajax_chained_view'))
+        fifth_field = ChainedChoiceField(parent_field='fourth_field', ajax_url=reverse_lazy('ajax_chained_view'))
+
+
+    class ModelChainForm(ModelChainedChoicesForm):
+        car = forms.ModelChoiceField(queryset=Car.objects.all(), required=True, empty_label=_(u'Select a car brand'))
+        model = ChainedChoiceField(parent_field='car', ajax_url=reverse_lazy('ajax_chained_car_models'), empty_label=_(u'Select a car model'), required=True)
+        engine = forms.ChoiceField(choices=([('', _('All engine types'))] + Car.ENGINES), required=False)
+
+
+Notice that ajax URLs could differ of each field for different purposes. See example project for more use cases.
+
+
+Ajax call is made whenever the parent field is changed. You must set up the ajax URL to return json list of lists.
+
+    class AjaxChainedView(BaseDetailView):
+        """
+        View to handle the ajax request for the field options.
+        """
+
+        def get(self, request, *args, **kwargs):
+            field = request.GET.get('field')
+            parent_value = request.GET.get("parent_value")
+
+            vals_list = []
+            for x in range(1, 6):
+                vals_list.append(x*int(parent_value))
+
+            choices = tuple(zip(vals_list, vals_list))
+
+            response = HttpResponse(
+                json.dumps(choices, cls=DjangoJSONEncoder),
+                mimetype='application/javascript'
+            )
+            add_never_cache_headers(response)
+            return response
+
+
+Or you can use ChainedSelectChoicesView class helper:
+
+    class AjaxChainedView(ChainedSelectChoicesView):
+        def get_choices(self):
+            vals_list = []
+            for x in range(1, 6):
+                vals_list.append(x*int(self.parent_value))
+            return tuple(zip(vals_list, vals_list))
+
+
+Don't forget to update your urls.py:
+
+    url(r'^ajax/custom-chained-view-url/$', AjaxChainedView.as_view(), name='ajax_chained_view'),

@@ -1,0 +1,29 @@
+{% load i18n staticfiles clever_selects_extras future %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Django Clever Selects by Pragmatic Mates</title>
+
+    <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
+</head>
+<body>
+
+<h1>Django Clever Selects</h1>
+
+<a href="{% url 'home' %}">{% trans 'Home' %}</a><br><br>
+
+<h3>{{ message|default:'&nbsp;' }}</h3>
+
+<h2>{{ title }}:</h2>
+
+<form action="{{ request.get_full_path }}" method="post">
+{% csrf_token %}
+{{ form }}
+<input type="submit" />
+</form>
+
+{% clever_selects_js_import %}
+
+</body>
+</html>

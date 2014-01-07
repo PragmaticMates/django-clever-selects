@@ -1,0 +1,18 @@
+{% load i18n staticfiles clever_selects_extras future %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Django Clever Selects by Pragmatic Mates</title>
+
+    <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js' %}"></script>
+</head>
+<body>
+
+<h1>Django Clever Selects</h1>
+
+<a href="{% url 'simple_chain' %}">{% trans 'Simple chain' %}</a><br><br>
+<a href="{% url 'multiple_chain' %}">{% trans 'Multiple chain' %}</a>
+
+</body>
+</html>
