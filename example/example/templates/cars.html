@@ -1,0 +1,28 @@
+{% extends 'form.html' %}
+{% load i18n future %}
+
+{% block extra_content %}
+<h3>{% trans 'Cars in garage' %}</h3>
+<table>
+    <thead>
+        <tr>
+            <th>{% trans 'Car' %}</th>
+            <th>{% trans 'Engine' %}</th>
+            <th>{% trans 'Color' %}</th>
+            <th>{% trans 'Numberplate' %}</th>
+            <th>{% trans 'Actions' %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for car in car_list %}
+            <tr>
+                <td>{{ car }}</td>
+                <td>{{ car.engine }}</td>
+                <td>{{ car.color|default:'' }}</td>
+                <td>{{ car.numberplate }}</td>
+                <td><a href="{% url 'edit_car' car.pk %}">{% trans 'Edit' %}</a> | <a href="{% url 'delete_car' car.pk %}">{% trans 'Delete' %}</a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

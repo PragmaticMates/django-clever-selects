@@ -12,7 +12,7 @@ from testclient import TestClient
 
 class ChainedChoicesMixin(object):
     """
-    Form Mixin to be used with ChainedChoicesForm and ModelChainedChoicesForm.
+    Form Mixin to be used with ChainedChoicesForm and ChainedChoicesModelForm.
     It loads the options when there is already an instance or initial data.
     """
     user = None
@@ -29,8 +29,8 @@ class ChainedChoicesMixin(object):
             self.set_choices_via_ajax(kwargs['data'])
 
         elif kwargs.get('instance', None) is not None:
-            oldest_parent_field_names = self.get_oldest_parent_field_names()
-            youngest_child_names = self.get_youngest_childs_field_names()
+            oldest_parent_field_names = list(set(self.get_oldest_parent_field_names()))
+            youngest_child_names = list(set(self.get_youngest_childs_field_names()))
 
             for youngest_child_name in youngest_child_names:
                 self.find_instance_attr(kwargs['instance'], youngest_child_name)
@@ -43,8 +43,9 @@ class ChainedChoicesMixin(object):
         elif len(args) > 0 and args[0] not in EMPTY_VALUES:
             self.set_choices_via_ajax(args[0])
         else:
-            for field_name in self.chained_model_fields_names:
-                self.fields[field_name].choices = []
+            for field_name in self.chained_fields_names + self.chained_model_fields_names:
+                empty_label = self.fields[field_name].empty_label
+                self.fields[field_name].choices = [('', empty_label)]
 
     def set_choices_via_ajax(self, kwargs=None):
         for field_name in self.chained_fields_names + self.chained_model_fields_names:
@@ -74,7 +75,7 @@ class ChainedChoicesMixin(object):
                 data = c.get(url, params)
 
                 try:
-                    field.choices = [('', '--------')] + json.loads(data.content)
+                    field.choices = [('', field.empty_label)] + json.loads(data.content)
                 except ValueError:
                     raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object' % {
                         'url': url,
@@ -142,12 +143,12 @@ class ChainedChoicesForm(forms.Form, ChainedChoicesMixin):
         self.init_chained_choices(*args, **kwargs)
 
 
-class ModelChainedChoicesForm(forms.ModelForm, ChainedChoicesMixin):
+class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
     """
     Form class to be used with ChainedChoiceField and ChainedSelect widget
     If there is already an instance (i.e. editing)
     then the options will be loaded when the form is built.
     """
     def __init__(self, *args, **kwargs):
-        super(ModelChainedChoicesForm, self).__init__(*args, **kwargs)
+        super(ChainedChoicesModelForm, self).__init__(*args, **kwargs)
         self.init_chained_choices(*args, **kwargs)

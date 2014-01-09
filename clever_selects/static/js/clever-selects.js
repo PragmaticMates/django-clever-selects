@@ -9,13 +9,13 @@ $(document).ready(function() {
         var ajax_url = valuefield.attr('ajax_url');
         var empty_label = valuefield.attr('empty_label') || '--------';
 
-        console.log(ajax_url);
-        console.log({
-            field: valuefield.attr('name'),
-            parent_field: $(this).attr('name'),
-            parent_value: $(this).val(),
-            empty_label: empty_label
-        });
+//        console.log(ajax_url);
+//        console.log({
+//            field: valuefield.attr('name'),
+//            parent_field: $(this).attr('name'),
+//            parent_value: $(this).val(),
+//            empty_label: empty_label
+//        });
 
         $.get(
             ajax_url,
@@ -26,9 +26,9 @@ $(document).ready(function() {
             },
             function(j) {
                 var options = '';
-                if(j.length > 1) {
+//                if(j.length > 1) {
                     options += '<option value="">' + empty_label + '</option>';
-                }
+//                }
                 for (var i = 0; i < j.length; i++) {
                     options += '<option value="' + j[i][0] + '">' + j[i][1] + '</option>';
                 }

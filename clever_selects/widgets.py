@@ -7,7 +7,7 @@ class ChainedSelect(Select):
     A ChoiceField widget where the options for the select are dependant on the value of the parent select field.
     When the parent field is changed an ajax call is made to determine the options.
 
-    Form must inherit from ChainedChoicesMixin (or from helper forms ChainedChoicesForm and ModelChainedChoicesForm)
+    Form must inherit from ChainedChoicesMixin (or from helper forms ChainedChoicesForm and ChainedChoicesModelForm)
     which loads the options when there is already an instance or initial data.
     """
     def __init__(self, parent_field=None, ajax_url=None, *args, **kwargs):

@@ -1,16 +1,17 @@
 from django.core.urlresolvers import reverse_lazy
-from django.forms import ChoiceField
+from django.forms import ChoiceField, ModelChoiceField
 from django.utils.translation import ugettext_lazy as _
 
-from clever_selects.form_fields import ChainedChoiceField
-from clever_selects.forms import ChainedChoicesForm
+from clever_selects.form_fields import ChainedChoiceField, ChainedModelChoiceField
+from clever_selects.forms import ChainedChoicesForm, ChainedChoicesModelForm
 
 from helpers import CONTINENTS, GENDER
+from models import CarBrand, Car, BrandModel
 
 
 class SimpleChainForm(ChainedChoicesForm):
     gender = ChoiceField(choices=[('', _(u'Select a gender'))] + list(GENDER))
-    name = ChainedChoiceField(parent_field='gender', ajax_url=reverse_lazy('ajax_chained_names'))
+    name = ChainedChoiceField(parent_field='gender', ajax_url=reverse_lazy('ajax_chained_names'), empty_label=_(u'Select name'))
 
 
 class MultipleChainForm(ChainedChoicesForm):
@@ -19,7 +20,12 @@ class MultipleChainForm(ChainedChoicesForm):
     city = ChainedChoiceField(parent_field='country', ajax_url=reverse_lazy('ajax_chained_cities'))
 
 
-#class ModelChainForm(ModelChainedChoicesForm):
-    #car = forms.ModelChoiceField(queryset=Car.objects.all(), required=True, empty_label=_(u'Select a car brand'))
-    #model = ChainedChoiceField(parent_field='car', ajax_url=reverse_lazy('ajax_chained_car_models'), empty_label=_(u'Select a car model'), required=True)
-    #engine = forms.ChoiceField(choices=([('', _('All engine types'))] + Car.ENGINES), required=False)
+class ModelChainForm(ChainedChoicesModelForm):
+    brand = ModelChoiceField(queryset=CarBrand.objects.all(), required=True, empty_label=_(u'Select a car brand'))
+    model = ChainedModelChoiceField(parent_field='brand', ajax_url=reverse_lazy('ajax_chained_models'),
+                                    empty_label=_(u'Select a car model'), model=BrandModel, required=True)
+    engine = ChoiceField(choices=([('', _('All engine types'))] + Car.ENGINES), required=False)
+
+    class Meta:
+        model = Car
+        fields = ['brand', 'model', 'engine', 'color', 'numberplate']

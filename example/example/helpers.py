@@ -8,6 +8,10 @@ GENDER = (
     (GENDER_FEMALE, 'Female')
 )
 
+NAMES = {
+    GENDER_MALE: ['Andrew', 'Arthur', 'Ian', 'Eric', 'Leonard', 'Lukas', 'Matt', 'Peter', 'Vincent'],
+    GENDER_FEMALE: ['Allison', 'Angela', 'Catherine', 'Elisabeth', 'Evangeline', 'Heidi', 'Katie', 'Lilly', 'Susan']
+}
 
 CONTINENT_NORTH_AMERICA = 'north_america'
 CONTINENT_SOUTH_AMERICA = 'south_america'

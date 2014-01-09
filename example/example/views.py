@@ -1,79 +1,98 @@
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, TemplateView, CreateView, UpdateView, View
+from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.edit import DeletionMixin
 
 from clever_selects.views import ChainedSelectChoicesView
 
-from forms import SimpleChainForm, MultipleChainForm
-from helpers import COUNTRIES, CITIES, GENDER_MALE, GENDER_FEMALE
+from forms import SimpleChainForm, MultipleChainForm, ModelChainForm
+from helpers import NAMES, COUNTRIES, CITIES
+from models import BrandModel, Car
 
 
 class HomeView(TemplateView):
     template_name = 'home.html'
 
 
-class SimpleChainView(FormView):
+class ExampleFormViewMixin(object):
+    def get_context_data(self, **kwargs):
+        context_data = super(ExampleFormViewMixin, self).get_context_data(**kwargs)
+        context_data['title'] = self.title
+        try:
+            context_data['message'] = self.request.session.get('message')
+            del self.request.session['message']
+        except KeyError:
+            pass
+        return context_data
+
+    def get_success_url(self):
+        return reverse(self.success_url)
+
+    def form_valid(self, form):
+        self.request.session['message'] = _(u'Form is valid! Submitted data: %s') % smart_unicode(
+            form.cleaned_data, errors='replace')
+        return super(ExampleFormViewMixin, self).form_valid(form)
+
+    def form_invalid(self, form):
+        self.message = _(u'Form is invalid!')
+        return super(ExampleFormViewMixin, self).form_invalid(form)
+
+
+class SimpleChainView(ExampleFormViewMixin, FormView):
     form_class = SimpleChainForm
     template_name = 'form.html'
     success_url = 'simple_chain'
-    message = None
-
-    def get_context_data(self, **kwargs):
-        context_data = super(SimpleChainView, self).get_context_data(**kwargs)
-        context_data['title'] = _(u'Simple chain')
-        if 'message' in self.request.session:
-            context_data['message'] = self.request.session['message']
-            del self.request.session['message']
-        return context_data
-
-    def get_success_url(self):
-        return reverse(self.success_url)
-
-    def form_valid(self, form):
-        self.request.session['message'] = _(u'Form is valid! Submitted data: %s') % form.cleaned_data
-        return super(SimpleChainView, self).form_valid(form)
-
-    def form_invalid(self, form):
-        self.request.session['message'] = _(u'Form is invalid!')
-        return super(SimpleChainView, self).form_invalid(form)
+    title = _(u'Simple chain')
 
 
-class MultipleChainView(FormView):
+class MultipleChainView(ExampleFormViewMixin, FormView):
     form_class = MultipleChainForm
     template_name = 'form.html'
     success_url = 'multiple_chain'
-    message = None
+    title = _(u'Multiple chain')
+
+
+class ModelChainView(ExampleFormViewMixin, CreateView):
+    form_class = ModelChainForm
+    template_name = 'cars.html'
+    success_url = 'model_chain'
+    title = _(u'Model chain')
 
     def get_context_data(self, **kwargs):
-        context_data = super(MultipleChainView, self).get_context_data(**kwargs)
-        context_data['title'] = _(u'Multiple chain')
-        if 'message' in self.request.session:
-            context_data['message'] = self.request.session['message']
-            del self.request.session['message']
+        context_data = super(ModelChainView, self).get_context_data(**kwargs)
+        context_data['car_list'] = self.get_car_list()
         return context_data
+
+    def get_car_list(self):
+        return Car.objects.all()
+
+
+class EditCarView(ExampleFormViewMixin, UpdateView):
+    form_class = ModelChainForm
+    template_name = 'form.html'
+    success_url = 'model_chain'
+    title = _(u'Update car')
+    model = Car
+
+
+class DeleteCarView(DeletionMixin, SingleObjectMixin, View):
+    success_url = 'model_chain'
+    model = Car
+
+    def get(self, *args, **kwargs):
+        return self.delete(*args, **kwargs)
 
     def get_success_url(self):
         return reverse(self.success_url)
 
-    def form_valid(self, form):
-        self.request.session['message'] = _(u'Form is valid! Submitted data: %s') % form.cleaned_data
-        return super(MultipleChainView, self).form_valid(form)
-
-    def form_invalid(self, form):
-        self.request.session['message'] = _(u'Form is invalid!')
-        return super(MultipleChainView, self).form_invalid(form)
-
 
 class AjaxChainedNames(ChainedSelectChoicesView):
-    NAMES = {
-        GENDER_MALE: ['Andrew', 'Arthur', 'Ian', 'Eric', 'Leonard', 'Lukas', 'Matt', 'Peter', 'Vincent'],
-        GENDER_FEMALE: ['Allison', 'Angela', 'Catherine', 'Elisabeth', 'Evangeline', 'Heidi', 'Katie', 'Lilly', 'Susan']
-    }
-
     def get_choices(self):
         choices = []
         try:
-            gender_names = self.NAMES[self.parent_value]
+            gender_names = NAMES[self.parent_value]
             for name in gender_names:
                 choices.append((name, name))
         except KeyError:
@@ -103,3 +122,8 @@ class AjaxChainedCities(ChainedSelectChoicesView):
         except KeyError:
             return []
         return choices
+
+
+class AjaxChainedModels(ChainedSelectChoicesView):
+    def get_child_set(self):
+        return BrandModel.objects.filter(brand__pk=self.parent_value)

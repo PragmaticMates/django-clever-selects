@@ -29,7 +29,7 @@ Usage
 Forms
 '''''
 
-Form must inherit from ``ChainedChoicesMixin`` (or from ``ChainedChoicesForm`` / ``ModelChainedChoicesForm``, depends on your needs)
+Form must inherit from ``ChainedChoicesMixin`` (or from ``ChainedChoicesForm`` / ``ChainedChoicesModelForm``, depends on your needs)
 which loads the options when there is already an instance or initial data::
 
     from clever_selects.form_fields import ChainedChoiceField
@@ -49,10 +49,15 @@ which loads the options when there is already an instance or initial data::
         fifth_field = ChainedChoiceField(parent_field='fourth_field', ajax_url=reverse_lazy('ajax_chained_view'))
 
 
-    class ModelChainForm(ModelChainedChoicesForm):
-        car = forms.ModelChoiceField(queryset=Car.objects.all(), required=True, empty_label=_(u'Select a car brand'))
-        model = ChainedChoiceField(parent_field='car', ajax_url=reverse_lazy('ajax_chained_car_models'), empty_label=_(u'Select a car model'), required=True)
+    class ModelChainForm(ChainedChoicesModelForm):
+        brand = forms.ModelChoiceField(queryset=CarBrand.objects.all(), required=True,
+            empty_label=_(u'Select a car brand'))
+        model = ChainedModelChoiceField(parent_field='brand', ajax_url=reverse_lazy('ajax_chained_models'),
+            empty_label=_(u'Select a car model'), model=BrandModel, required=True)
         engine = forms.ChoiceField(choices=([('', _('All engine types'))] + Car.ENGINES), required=False)
+
+        class Meta:
+            model = Car
 
 
 Notice that ajax URLs could differ of each field for different purposes. See example project for more use cases.
