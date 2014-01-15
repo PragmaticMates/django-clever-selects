@@ -138,9 +138,18 @@ class ChainedChoicesForm(forms.Form, ChainedChoicesMixin):
     If there is request POST data in *args (i.e. form validation was invalid)
     then the options will be loaded when the form is built.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, language_code=None, *args, **kwargs):
         super(ChainedChoicesForm, self).__init__(*args, **kwargs)
+        self.language_code = language_code
         self.init_chained_choices(*args, **kwargs)
+
+    def is_valid(self):
+        if self.language_code:
+            # response is not translated to requested language code :/
+            # so translation is triggered manually
+            from django.utils.translation import activate
+            activate(self.language_code)
+        return super(ChainedChoicesForm, self).is_valid()
 
 
 class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
@@ -149,6 +158,15 @@ class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
     If there is already an instance (i.e. editing)
     then the options will be loaded when the form is built.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, language_code=None, *args, **kwargs):
         super(ChainedChoicesModelForm, self).__init__(*args, **kwargs)
+        self.language_code = language_code
         self.init_chained_choices(*args, **kwargs)
+
+    def is_valid(self):
+        if self.language_code:
+            # response is not translated to requested language code :/
+            # so translation is triggered manually
+            from django.utils.translation import activate
+            activate(self.language_code)
+        return super(ChainedChoicesModelForm, self).is_valid()

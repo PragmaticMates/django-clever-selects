@@ -29,6 +29,7 @@ class TestClient(Client):
             request.session = self.session
         else:
             request.session = engine.SessionStore()
+
         login(request, user)
 
         # Set the cookie to represent the session.
