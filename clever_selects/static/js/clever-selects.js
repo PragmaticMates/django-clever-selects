@@ -34,7 +34,8 @@ $(document).ready(function() {
                 }
                 valuefield.html(options);
                 valuefield.trigger('change');
-                valuefield.trigger("liszt:updated"); // support for chosen
+                valuefield.trigger("liszt:updated"); // support for chosen versions < 1.0.0
+                valuefield.trigger("chosen:updated"); // support for chosen versions >= 1.0.0
             },
             "json"
         );
