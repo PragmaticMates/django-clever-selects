@@ -1,7 +1,16 @@
 django-clever-selects
 =====================
 
-Chained select box widget for Django framework using AJAX requests. Chains select boxes together so the values change depending on the parent value.
+This library is inspired by **django-chained-selectbox** from *s-block*
+(https://github.com/s-block/django-chained-selectbox).
+
+It serves chained select box widget for Django framework using AJAX requests for chaining select boxes together.
+The values change depending on the parent value.
+
+Previous mentioned library was intended for use in Django admin only. The new library has frontend functionality,
+improved existing instance data initialization and new ``ChainedModelChoiceField``. It also uses custom TestClient which
+is able pass ``request.user`` variable into AJAX view if user is logged in. It is very useful if you need to filter result queryset by
+user permissions for example.
 
 Tested on Django 1.4.5.
 
