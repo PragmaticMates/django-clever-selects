@@ -22,9 +22,9 @@ class ChainedSelect(Select):
         field_prefix = attrs['id'][:attrs['id'].rfind('-') + 1]
         formset_prefix = attrs['id'][:attrs['id'].find('-') + 1]
         if not field_prefix:
-            paretnfield_id = "id_" + self.parent_field
+            parentfield_id = "id_" + self.parent_field
         else:
-            paretnfield_id = field_prefix + self.parent_field
+            parentfield_id = field_prefix + self.parent_field
 
         attrs.update(self.attrs)
         attrs['ajax_url'] = self.ajax_url
@@ -35,7 +35,7 @@ class ChainedSelect(Select):
         <script type="text/javascript">
         //<![CDATA[
             $(document).ready(function(){
-                var parent_field = $("#%(paretnfield_id)s");
+                var parent_field = $("#%(parentfield_id)s");
                 parent_field.addClass('chained-parent-field');
                 var chained_ids = parent_field.attr('chained_ids');
                 if(chained_ids == null)
@@ -46,7 +46,7 @@ class ChainedSelect(Select):
         //]]>
         </script>
 
-        """ % {"paretnfield_id": paretnfield_id, 'chained_id': attrs['id']}
+        """ % {"parentfield_id": parentfield_id, 'chained_id': attrs['id']}
 
 #        TODO: check admin compatiblity with this syntax:
 #        js = """
