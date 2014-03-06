@@ -26,7 +26,7 @@ def clever_selects_js_import(context, csrf=True):
     if request and csrf:
         get_token(request)
     elif csrf:
-        log.warning("The 'request' object must be accesible within the context. "
+        log.warning("The 'request' object must be accessible within the context. "
                     "You must add 'django.contrib.messages.context_processors.request' "
                     "to your TEMPLATE_CONTEXT_PROCESSORS and render your views using a RequestContext.")
 

@@ -23,7 +23,7 @@ class ChainedChoicesMixin(object):
     def init_chained_choices(self, *args, **kwargs):
         self.chained_fields_names = self.get_fields_names_by_type(ChainedChoiceField)
         self.chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
-        self.user = kwargs.get('user', None)
+        self.user = kwargs.get('user', self.user)
 
         if 'data' in kwargs:
             self.set_choices_via_ajax(kwargs['data'])
