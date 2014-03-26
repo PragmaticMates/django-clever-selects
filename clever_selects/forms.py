@@ -16,6 +16,7 @@ class ChainedChoicesMixin(object):
     It loads the options when there is already an instance or initial data.
     """
     user = None
+    prefix = None
     fields = []
     chained_fields_names = []
     chained_model_fields_names = []
@@ -28,6 +29,9 @@ class ChainedChoicesMixin(object):
         if 'data' in kwargs:
             self.set_choices_via_ajax(kwargs['data'])
 
+        elif len(args) > 0 and args[0] not in EMPTY_VALUES:
+            self.set_choices_via_ajax(args[0])
+
         elif kwargs.get('instance', None) is not None:
             oldest_parent_field_names = list(set(self.get_oldest_parent_field_names()))
             youngest_child_names = list(set(self.get_youngest_childs_field_names()))
@@ -36,12 +40,12 @@ class ChainedChoicesMixin(object):
                 self.find_instance_attr(kwargs['instance'], youngest_child_name)
 
             for oldest_parent_field_name in oldest_parent_field_names:
-                self.fields[oldest_parent_field_name].initial = getattr(self, '%s_pk' % oldest_parent_field_name)
+                try:
+                    self.fields[oldest_parent_field_name].initial = getattr(self, '%s_pk' % oldest_parent_field_name)
+                except AttributeError:
+                    pass
 
             self.set_choices_via_ajax()
-
-        elif len(args) > 0 and args[0] not in EMPTY_VALUES:
-            self.set_choices_via_ajax(args[0])
         else:
             for field_name in self.chained_fields_names + self.chained_model_fields_names:
                 empty_label = self.fields[field_name].empty_label
@@ -60,11 +64,15 @@ class ChainedChoicesMixin(object):
                     pass
 
                 if kwargs is not None:
-                    parent_value = kwargs.get(field.parent_field, None)
-                    field_value = kwargs.get(field_name, None)
+                    if self.prefix in EMPTY_VALUES:
+                        parent_value = kwargs.get(field.parent_field, None)
+                        field_value = kwargs.get(field_name, None)
+                    else:
+                        parent_value = kwargs.get('%s-%s' % (self.prefix, field.parent_field), None)
+                        field_value = kwargs.get('%s-%s' % (self.prefix, field_name), None)
                 else:
-                    parent_value = getattr(self, '%s_pk' % field.parent_field)
-                    field_value = getattr(self, '%s_pk' % field_name)
+                    parent_value = getattr(self, '%s_pk' % field.parent_field, None)
+                    field_value = getattr(self, '%s_pk' % field_name, None)
 
                 url = field.ajax_url
                 params = {
@@ -127,7 +135,7 @@ class ChainedChoicesMixin(object):
         field = self.fields[attr_name]
         if hasattr(instance, attr_name):
             attribute = getattr(instance, attr_name)
-            setattr(self, '%s_pk' % attr_name, attribute.pk)
+            setattr(self, '%s_pk' % attr_name, attribute.pk if attribute else None)
             if hasattr(field, 'parent_field'):
                 self.find_instance_attr(attribute, field.parent_field)
 

@@ -1,9 +1,9 @@
 $(document).ready(function() {
     $.fn.loadChildChoices = function(child) {
-////    if (chained_id.indexOf('__prefix__') != -1) {
-////        chained_id = chained_id.replace('__prefix__', $(this).attr('name').split('-')[1]);
-////        $(this).attr('chained_id', chained_id);
-////    }
+//        if (chained_id.indexOf('__prefix__') != -1) {
+//            chained_id = chained_id.replace('__prefix__', $(this).attr('name').split('-')[1]);
+//            $(this).attr('chained_id', chained_id);
+//        }
 
         var valuefield = child;
         var ajax_url = valuefield.attr('ajax_url');

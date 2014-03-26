@@ -1,3 +1,5 @@
+from django.core import validators
+from django.core.exceptions import ValidationError
 from django.forms import ChoiceField
 from django.forms.models import ModelChoiceField
 
@@ -29,7 +31,9 @@ class ChainedModelChoiceField(ModelChoiceField):
 
         self.parent_field = parent_field
         self.ajax_url = ajax_url
-        self.queryset = model.objects.all()
+        self.model = model
+        #self.queryset = model.objects.all()  # Large querysets could take long time to load all values (django-cities)
+        self.queryset = model.objects.none()
         self.empty_label = empty_label
 
         defaults = {
@@ -42,3 +46,26 @@ class ChainedModelChoiceField(ModelChoiceField):
     def valid_value(self, value):
         """Dynamic choices so just return True for now"""
         return True
+
+    def to_python(self, value):
+        empty_values = getattr(self, 'empty_values', list(validators.EMPTY_VALUES))
+        if value in empty_values:
+            return None
+        try:
+            key = self.to_field_name or 'pk'
+            value = self.model.objects.get(**{key: value})
+        except (ValueError, self.queryset.model.DoesNotExist):
+            raise ValidationError(self.error_messages['invalid_choice'], code='invalid_choice')
+        return value
+
+    def validate(self, value):
+        """
+        Validates that the input is in self.choices.
+        """
+        super(ChoiceField, self).validate(value)
+        if value and not self.valid_value(value):
+            raise ValidationError(
+                self.error_messages['invalid_choice'],
+                code='invalid_choice',
+                params={'value': value},
+            )
