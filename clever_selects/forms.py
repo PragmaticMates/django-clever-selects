@@ -46,6 +46,9 @@ class ChainedChoicesMixin(object):
                     pass
 
             self.set_choices_via_ajax()
+
+        elif 'initial' in kwargs and kwargs['initial'] not in EMPTY_VALUES:
+            self.set_choices_via_ajax(kwargs['initial'])
         else:
             for field_name in self.chained_fields_names + self.chained_model_fields_names:
                 empty_label = self.fields[field_name].empty_label
