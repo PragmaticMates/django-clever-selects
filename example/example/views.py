@@ -1,6 +1,7 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, ugettext
 from django.views.generic import FormView, TemplateView, CreateView, UpdateView, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import DeletionMixin
@@ -127,3 +128,23 @@ class AjaxChainedCities(ChainedSelectChoicesView):
 class AjaxChainedModels(ChainedSelectChoicesView):
     def get_child_set(self):
         return BrandModel.objects.filter(brand__pk=self.parent_value)
+
+
+class AjaxChainedColors(ChainedSelectChoicesView):
+    def get_choices(self):
+        choices = []
+        try:
+            model = BrandModel.objects.get(pk=self.parent_value)
+            if 'Sportback' in model.title or 'Cabrio' in model.title or 'Coupe' in model.title:
+                return [
+                    ('RED', ugettext(u'red')),
+                    ('WHITE', ugettext(u'white')),
+                    ('BLACK', ugettext(u'black')),
+                    ('YELLOW', ugettext(u'yellow')),
+                    ('SILVER', ugettext(u'silver')),
+                ]
+            for color in Car.COLORS:
+                choices.append((color[0], ugettext(color[1])))
+            return choices
+        except (ObjectDoesNotExist, KeyError):
+            return []
