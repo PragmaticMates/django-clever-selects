@@ -5,6 +5,7 @@ import json
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EMPTY_VALUES
+from django.db import models
 
 from form_fields import ChainedChoiceField, ChainedModelChoiceField
 from testclient import TestClient
@@ -34,27 +35,27 @@ class ChainedChoicesMixin(object):
 
         elif kwargs.get('instance', None) is not None:
             oldest_parent_field_names = list(set(self.get_oldest_parent_field_names()))
-            youngest_child_names = list(set(self.get_youngest_childs_field_names()))
+            youngest_child_names = list(set(self.get_youngest_children_field_names()))
 
             for youngest_child_name in youngest_child_names:
                 self.find_instance_attr(kwargs['instance'], youngest_child_name)
 
             for oldest_parent_field_name in oldest_parent_field_names:
                 try:
-                    self.fields[oldest_parent_field_name].initial = getattr(self, '%s_pk' % oldest_parent_field_name)
+                    self.fields[oldest_parent_field_name].initial = getattr(self, '%s' % oldest_parent_field_name)
                 except AttributeError:
                     pass
 
             self.set_choices_via_ajax()
 
         elif 'initial' in kwargs and kwargs['initial'] not in EMPTY_VALUES:
-            self.set_choices_via_ajax(kwargs['initial'])
+            self.set_choices_via_ajax(kwargs['initial'], is_initial=True)
         else:
             for field_name in self.chained_fields_names + self.chained_model_fields_names:
                 empty_label = self.fields[field_name].empty_label
                 self.fields[field_name].choices = [('', empty_label)]
 
-    def set_choices_via_ajax(self, kwargs=None):
+    def set_choices_via_ajax(self, kwargs=None, is_initial=False):
         for field_name in self.chained_fields_names + self.chained_model_fields_names:
             field = self.fields[field_name]
             try:
@@ -67,31 +68,38 @@ class ChainedChoicesMixin(object):
                     pass
 
                 if kwargs is not None:
-                    if self.prefix in EMPTY_VALUES:
+                    # inital data do not have any prefix
+                    if self.prefix in EMPTY_VALUES or is_initial:
                         parent_value = kwargs.get(field.parent_field, None)
                         field_value = kwargs.get(field_name, None)
                     else:
                         parent_value = kwargs.get('%s-%s' % (self.prefix, field.parent_field), None)
                         field_value = kwargs.get('%s-%s' % (self.prefix, field_name), None)
                 else:
-                    parent_value = getattr(self, '%s_pk' % field.parent_field, None)
-                    field_value = getattr(self, '%s_pk' % field_name, None)
+                    parent_value = getattr(self, '%s' % field.parent_field, None)
+                    field_value = getattr(self, '%s' % field_name, None)
 
-                url = field.ajax_url
-                params = {
-                    'field_name': field_name,
-                    'parent_value': parent_value,
-                    'field_value': field_value
-                }
-                data = c.get(url, params)
+                field.choices = [('', field.empty_label)]
 
-                try:
-                    field.choices = [('', field.empty_label)] + json.loads(data.content)
-                except ValueError:
-                    raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object' % {
-                        'url': url,
-                        'params': params
-                    })
+                # check that parent_value is valid
+                if parent_value:
+                    parent_value = getattr(parent_value, 'pk', parent_value)
+
+                    url = field.ajax_url
+                    params = {
+                        'field_name': field_name,
+                        'parent_value': parent_value,
+                        'field_value': field_value
+                    }
+                    data = c.get(url, params)
+
+                    try:
+                        field.choices = field.choices + json.loads(data.content)
+                    except ValueError:
+                        raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object' % {
+                            'url': url,
+                            'params': params
+                        })
 
                 field.initial = field_value
 
@@ -114,6 +122,21 @@ class ChainedChoicesMixin(object):
                 result.append(field.parent_field)
         return result
 
+    def get_children_field_names(self, parent_name):
+        if parent_name in EMPTY_VALUES:
+            return []
+        result = []
+        for field_name in self.fields:
+            field = self.fields[field_name]
+            if getattr(field, 'parent_field', None) == parent_name:
+                result.append(field_name)
+        return result
+
+    def get_chained_fields_names(self):
+        chained_fields_names = self.get_fields_names_by_type(ChainedChoiceField)
+        chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
+        return chained_fields_names + chained_model_fields_names
+
     def get_oldest_parent_field_names(self):
         chained_fields_names = self.get_fields_names_by_type(ChainedChoiceField)
         chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
@@ -124,7 +147,7 @@ class ChainedChoicesMixin(object):
                 oldest_parent_field_names.append(field_name)
         return oldest_parent_field_names
 
-    def get_youngest_childs_field_names(self):
+    def get_youngest_children_field_names(self):
         result = []
         chained_fields_names = self.get_fields_names_by_type(ChainedChoiceField)
         chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
@@ -138,9 +161,12 @@ class ChainedChoicesMixin(object):
         field = self.fields[attr_name]
         if hasattr(instance, attr_name):
             attribute = getattr(instance, attr_name)
-            setattr(self, '%s_pk' % attr_name, attribute.pk if attribute else None)
+            attr_value = getattr(attribute, 'pk', unicode(attribute)) if attribute else None
+            setattr(self, '%s' % attr_name, attr_value)
+
             if hasattr(field, 'parent_field'):
-                self.find_instance_attr(attribute, field.parent_field)
+                parent_instance = attribute if isinstance(attribute, models.Model) else instance
+                self.find_instance_attr(parent_instance, field.parent_field)
 
 
 class ChainedChoicesForm(forms.Form, ChainedChoicesMixin):

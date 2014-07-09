@@ -5,7 +5,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 from views import HomeView, SimpleChainView, MultipleChainView, ModelChainView, EditCarView, DeleteCarView, \
-    AjaxChainedNames, AjaxChainedCountries, AjaxChainedCities, AjaxChainedModels
+    AjaxChainedNames, AjaxChainedCountries, AjaxChainedCities, AjaxChainedModels, AjaxChainedColors
 
 urlpatterns = patterns('',
     # Examples:
@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     url(r'^ajax/chained-countries/$', AjaxChainedCountries.as_view(), name='ajax_chained_countries'),
     url(r'^ajax/chained-cities/$', AjaxChainedCities.as_view(), name='ajax_chained_cities'),
     url(r'^ajax/chained-brand-models/$', AjaxChainedModels.as_view(), name='ajax_chained_models'),
+    url(r'^ajax/chained-colors/$', AjaxChainedColors.as_view(), name='ajax_chained_colors'),
 
     url(r'^simple-chain/$', SimpleChainView.as_view(), name='simple_chain'),
     url(r'^multiple-chain/$', MultipleChainView.as_view(), name='multiple_chain'),
