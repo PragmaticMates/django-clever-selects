@@ -25,7 +25,7 @@ class ChainedSelectChoicesView(View):
     def get(self, request, *args, **kwargs):
         response = HttpResponse(
             json.dumps(self.get_choices(), cls=DjangoJSONEncoder),
-            mimetype='application/javascript'
+            content_type='application/javascript'
         )
         add_never_cache_headers(response)
         return response
@@ -33,7 +33,7 @@ class ChainedSelectChoicesView(View):
     def empty_response(self):
         response = HttpResponse(
             json.dumps((), cls=DjangoJSONEncoder),
-            mimetype='application/javascript'
+            content_type='application/javascript'
         )
         add_never_cache_headers(response)
         return response
