@@ -27,7 +27,7 @@ class ChainedChoicesMixin(object):
         self.chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
         self.user = kwargs.get('user', self.user)
 
-        if 'data' in kwargs:
+        if kwargs.get('data', None) is not None:
             self.set_choices_via_ajax(kwargs['data'])
 
         elif len(args) > 0 and args[0] not in EMPTY_VALUES:
