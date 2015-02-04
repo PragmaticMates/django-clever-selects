@@ -195,9 +195,9 @@ class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
     If there is already an instance (i.e. editing)
     then the options will be loaded when the form is built.
     """
-    def __init__(self, language_code=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(ChainedChoicesModelForm, self).__init__(*args, **kwargs)
-        self.language_code = language_code
+        self.language_code = kwargs.get('language_code', None)
         self.init_chained_choices(*args, **kwargs)
 
     def is_valid(self):
