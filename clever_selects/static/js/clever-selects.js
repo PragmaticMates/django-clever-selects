@@ -54,5 +54,5 @@ $(document).ready(function() {
     $('.chained-parent-field').change(function() {
         $(this).loadAllChainedChoices();
     });
-//    }).change(); # Use change only if really necessary. Be aware of using it in POST requests!
+//    }).change();  // Use change only if really necessary. Be aware of using it in POST requests!
 });
