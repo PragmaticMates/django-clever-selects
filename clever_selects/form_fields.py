@@ -1,9 +1,11 @@
+from __future__ import absolute_import
+
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.forms import ChoiceField
 from django.forms.models import ModelChoiceField
 
-from widgets import ChainedSelect
+from .widgets import ChainedSelect
 
 
 class ChainedChoiceField(ChoiceField):
