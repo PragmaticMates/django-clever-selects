@@ -7,8 +7,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 
-from form_fields import ChainedChoiceField, ChainedModelChoiceField
-from testclient import TestClient
+from .form_fields import ChainedChoiceField, ChainedModelChoiceField
+from .testclient import TestClient
 
 
 class ChainedChoicesMixin(object):
@@ -175,6 +175,7 @@ class ChainedChoicesForm(forms.Form, ChainedChoicesMixin):
     If there is request POST data in *args (i.e. form validation was invalid)
     then the options will be loaded when the form is built.
     """
+
     def __init__(self, language_code=None, *args, **kwargs):
         super(ChainedChoicesForm, self).__init__(*args, **kwargs)
         self.language_code = language_code
@@ -195,6 +196,7 @@ class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
     If there is already an instance (i.e. editing)
     then the options will be loaded when the form is built.
     """
+
     def __init__(self, language_code=None, *args, **kwargs):
         super(ChainedChoicesModelForm, self).__init__(*args, **kwargs)
         self.language_code = language_code
