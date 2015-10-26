@@ -1,5 +1,7 @@
 __author__ = 'Erik Telepovsky'
 
+from __future__ import absolute_import
+
 import json
 
 from django import forms
@@ -7,8 +9,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 
-from form_fields import ChainedChoiceField, ChainedModelChoiceField
-from testclient import TestClient
+from .form_fields import ChainedChoiceField, ChainedModelChoiceField
+from .testclient import TestClient
 
 
 class ChainedChoicesMixin(object):
