@@ -7,6 +7,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EMPTY_VALUES
 from django.db import models
+from django.utils.encoding import force_str
 
 from .form_fields import ChainedChoiceField, ChainedModelChoiceField
 from .testclient import TestClient
@@ -92,7 +93,9 @@ class ChainedChoicesMixin(object):
                         'parent_value': parent_value,
                         'field_value': field_value
                     }
-                    data = c.get(url, params)
+                    # Note: One should force urls used by the test client.
+                    # See: https://code.djangoproject.com/ticket/18776
+                    data = c.get(force_str(url), params)
 
                     try:
                         field.choices = field.choices + json.loads(data.content)
