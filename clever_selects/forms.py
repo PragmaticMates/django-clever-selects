@@ -1,6 +1,5 @@
-__author__ = 'Erik Telepovsky'
-
 from __future__ import absolute_import
+__author__ = 'Erik Telepovsky'
 
 import json
 
