@@ -96,14 +96,14 @@ class ChainedChoicesMixin(object):
                     # Note: One should force urls used by the test client.
                     # See: https://code.djangoproject.com/ticket/18776
                     data = c.get(force_str(url), params)
-
-                    try:
-                        field.choices = field.choices + json.loads(smart_str(data.content))
-                    except ValueError:
-                        raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object' % {
-                            'url': url,
-                            'params': params
-                        })
+                    if smart_str(data.content):
+                        try:
+                            field.choices = field.choices + json.loads(smart_str(data.content))
+                        except ValueError:
+                            raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object' % {
+                                'url': url,
+                                'params': params
+                            })
 
                 field.initial = field_value
 
