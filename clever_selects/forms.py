@@ -1,14 +1,14 @@
-__author__ = 'Erik Telepovsky'
-
 import json
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EMPTY_VALUES
 from django.db import models
+from django.utils.encoding import force_text
 
 from .form_fields import ChainedChoiceField, ChainedModelChoiceField
 from .testclient import TestClient
+__author__ = 'Erik Telepovsky'
 
 
 class ChainedChoicesMixin(object):
@@ -85,7 +85,7 @@ class ChainedChoicesMixin(object):
                 if parent_value:
                     parent_value = getattr(parent_value, 'pk', parent_value)
 
-                    url = field.ajax_url
+                    url = force_text(field.ajax_url)
                     params = {
                         'field_name': field_name,
                         'parent_value': parent_value,
