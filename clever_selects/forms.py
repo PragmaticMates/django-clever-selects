@@ -1,14 +1,16 @@
+
+from __future__ import absolute_import
+
 import json
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EMPTY_VALUES
 from django.db import models
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str, smart_str, force_text
 
 from .form_fields import ChainedChoiceField, ChainedModelChoiceField
 from .testclient import TestClient
-__author__ = 'Erik Telepovsky'
 
 
 class ChainedChoicesMixin(object):
@@ -91,10 +93,12 @@ class ChainedChoicesMixin(object):
                         'parent_value': parent_value,
                         'field_value': field_value
                     }
-                    data = c.get(url, params)
+                    # Note: One should force urls used by the test client.
+                    # See: https://code.djangoproject.com/ticket/18776
+                    data = c.get(force_str(url), params)
 
                     try:
-                        field.choices = field.choices + json.loads(data.content)
+                        field.choices = field.choices + json.loads(smart_str(data.content))
                     except ValueError:
                         raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object' % {
                             'url': url,
