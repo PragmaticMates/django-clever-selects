@@ -10,6 +10,7 @@ class ChainedSelect(Select):
     Form must inherit from ChainedChoicesMixin (or from helper forms ChainedChoicesForm and ChainedChoicesModelForm)
     which loads the options when there is already an instance or initial data.
     """
+
     def __init__(self, parent_field=None, ajax_url=None, *args, **kwargs):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
@@ -34,7 +35,6 @@ class ChainedSelect(Select):
 
         js = """
         <script type="text/javascript">
-        //<![CDATA[
             (function($) {
                 $(document).ready(function(){
                     var parent_field = $("#%(parentfield_id)s");
@@ -50,7 +50,6 @@ class ChainedSelect(Select):
                     });
                 });
             })(jQuery || django.jQuery);
-        //]]>
         </script>
 
         """ % {"parentfield_id": parentfield_id, 'chained_id': attrs['id']}

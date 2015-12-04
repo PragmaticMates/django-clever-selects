@@ -29,6 +29,8 @@ class ChainedChoicesMixin(object):
         self.chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
         self.user = kwargs.get('user', self.user)
 
+        print(kwargs)
+
         if kwargs.get('data', None) is not None:
             self.set_choices_via_ajax(kwargs['data'])
 
@@ -70,7 +72,7 @@ class ChainedChoicesMixin(object):
                     pass
 
                 if kwargs is not None:
-                    # inital data do not have any prefix
+                    # initial data do not have any prefix
                     if self.prefix in EMPTY_VALUES or is_initial:
                         parent_value = kwargs.get(field.parent_field, None)
                         field_value = kwargs.get(field_name, None)
