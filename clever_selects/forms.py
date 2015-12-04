@@ -63,7 +63,7 @@ class ChainedChoicesMixin(object):
         for field_name in self.chained_fields_names + self.chained_model_fields_names:
             field = self.fields[field_name]
             try:
-                c = TestClient()
+                c = TestClient(HTTP_HOST="testserver")
 
                 try:
                     if self.user:
@@ -183,6 +183,7 @@ class ChainedChoicesForm(forms.Form, ChainedChoicesMixin):
     """
 
     def __init__(self, language_code=None, *args, **kwargs):
+        self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
         super(ChainedChoicesForm, self).__init__(*args, **kwargs)
         self.language_code = language_code
         self.init_chained_choices(*args, **kwargs)
@@ -204,6 +205,7 @@ class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
     """
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
         super(ChainedChoicesModelForm, self).__init__(*args, **kwargs)
         self.language_code = kwargs.get('language_code', None)
         self.init_chained_choices(*args, **kwargs)
