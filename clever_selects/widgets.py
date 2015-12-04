@@ -35,15 +35,21 @@ class ChainedSelect(Select):
         js = """
         <script type="text/javascript">
         //<![CDATA[
-            $(document).ready(function(){
-                var parent_field = $("#%(parentfield_id)s");
-                parent_field.addClass('chained-parent-field');
-                var chained_ids = parent_field.attr('chained_ids');
-                if(chained_ids == null)
-                    parent_field.attr('chained_ids', "%(chained_id)s");
-                else
-                    parent_field.attr('chained_ids', chained_ids + ",%(chained_id)s");
-            });
+            (function($) {
+                $(document).ready(function(){
+                    var parent_field = $("#%(parentfield_id)s");
+                    parent_field.addClass('chained-parent-field');
+                    var chained_ids = parent_field.attr('chained_ids');
+                    if(chained_ids == null)
+                        parent_field.attr('chained_ids', "%(chained_id)s");
+                    else
+                        parent_field.attr('chained_ids', chained_ids + ",%(chained_id)s");
+
+                    $(document).on('change', '.chained-parent-field', function() {
+                        $(this).loadAllChainedChoices();
+                    });
+                });
+            })(jQuery || django.jQuery);
         //]]>
         </script>
 
