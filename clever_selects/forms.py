@@ -167,7 +167,7 @@ class ChainedChoicesMixin(object):
         field = self.fields[attr_name]
         if hasattr(instance, attr_name):
             attribute = getattr(instance, attr_name)
-            attr_value = getattr(attribute, 'pk', unicode(attribute)) if attribute else None
+            attr_value = getattr(attribute, 'pk', smart_str(attribute)) if attribute else None
             setattr(self, '%s' % attr_name, attr_value)
 
             if hasattr(field, 'parent_field'):
