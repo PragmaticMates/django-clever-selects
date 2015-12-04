@@ -73,6 +73,15 @@ which loads the options when there is already an instance or initial data::
 
 Notice that ajax URLs could differ of each field for different purposes. See example project for more use cases.
 
+In order to pre-populate child fields, the form needs to have access to the current user. This is can be done by passing
+the user to the kwargs of the form's __init__() method in the form's view. The ChainedSelectFormViewMixin takes care
+of this for you.::
+
+    class CreateCarView(ChainedSelectFormViewMixin, CreateView)
+        template_name = "core/rooms.html"
+        form_class = ModelChainForm
+        model = Car
+
 Views
 '''''
 
