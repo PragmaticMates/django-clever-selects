@@ -30,3 +30,7 @@ pip-log.txt
 
 #IDE
 .idea
+
+#LiClips
+.project
+.pydevproject
