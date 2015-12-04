@@ -78,7 +78,7 @@ the user to the kwargs of the form's __init__() method in the form's view. The C
 of this for you.::
 
     class CreateCarView(ChainedSelectFormViewMixin, CreateView)
-        template_name = "core/rooms.html"
+        template_name = "create_car.html"
         form_class = ModelChainForm
         model = Car
 
