@@ -205,7 +205,8 @@ class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
     """
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
+        if kwargs.get('user'):
+            self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
         super(ChainedChoicesModelForm, self).__init__(*args, **kwargs)
         self.language_code = kwargs.get('language_code', None)
         self.init_chained_choices(*args, **kwargs)
