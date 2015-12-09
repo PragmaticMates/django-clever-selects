@@ -29,8 +29,6 @@ class ChainedChoicesMixin(object):
         self.chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
         self.user = kwargs.get('user', self.user)
 
-        print(kwargs)
-
         if kwargs.get('data', None) is not None:
             self.set_choices_via_ajax(kwargs['data'])
 
@@ -112,11 +110,11 @@ class ChainedChoicesMixin(object):
             except ObjectDoesNotExist:
                 field.choices = ()
 
-    def get_fields_names_by_type(self, type):
+    def get_fields_names_by_type(self, type_):
         result = []
         for field_name in self.fields:
             field = self.fields[field_name]
-            if isinstance(field, type):
+            if isinstance(field, type_):
                 result.append(field_name)
         return result
 
@@ -183,7 +181,8 @@ class ChainedChoicesForm(forms.Form, ChainedChoicesMixin):
     """
 
     def __init__(self, language_code=None, *args, **kwargs):
-        self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
+        if kwargs.get('user'):
+            self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
         super(ChainedChoicesForm, self).__init__(*args, **kwargs)
         self.language_code = language_code
         self.init_chained_choices(*args, **kwargs)
