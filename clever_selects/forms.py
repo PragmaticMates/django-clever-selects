@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import json
 
 from django import forms
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EMPTY_VALUES
 from django.db import models
