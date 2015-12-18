@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.http import HttpRequest
 from django.test.client import Client
-from django.utils.importlib import import_module
+from importlib import import_module
 
 
 class TestClient(Client):
