@@ -63,7 +63,7 @@ class ChainedChoicesMixin(object):
         for field_name in self.chained_fields_names + self.chained_model_fields_names:
             field = self.fields[field_name]
             try:
-                c = TestClient(HTTP_HOST="testserver")
+                c = TestClient(HTTP_HOST="clever_selects_client")
 
                 try:
                     if self.user:
