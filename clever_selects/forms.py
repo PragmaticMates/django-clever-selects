@@ -62,14 +62,6 @@ class ChainedChoicesMixin(object):
         for field_name in self.chained_fields_names + self.chained_model_fields_names:
             field = self.fields[field_name]
             try:
-                c = TestClient(HTTP_HOST="clever-selects.client")
-
-                try:
-                    if self.user:
-                        c.login_user(self.user)
-                except AttributeError:
-                    pass
-
                 if kwargs is not None:
                     # initial data do not have any prefix
                     if self.prefix in EMPTY_VALUES or is_initial:
@@ -99,6 +91,14 @@ class ChainedChoicesMixin(object):
                     if cache.get(cache_key):
                         field.choices = cache.get(cache_key)
                     else:
+                        c = TestClient(HTTP_HOST="clever-selects.client")
+
+                        try:
+                            if self.user:
+                                c.login_user(self.user)
+                        except AttributeError:
+                            pass
+
                         # Note: One should force urls used by the test client.
                         # See: https://code.djangoproject.com/ticket/18776
                         data = c.get(force_str(url), params)
