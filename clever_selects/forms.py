@@ -62,7 +62,7 @@ class ChainedChoicesMixin(object):
         for field_name in self.chained_fields_names + self.chained_model_fields_names:
             field = self.fields[field_name]
             try:
-                c = TestClient(HTTP_HOST="clever_selects_client")
+                c = TestClient(HTTP_HOST="clever_selects.client")
 
                 try:
                     if self.user:
@@ -95,14 +95,14 @@ class ChainedChoicesMixin(object):
                         'field_value': field_value
                     }
                     cache_key = "clever-selects::{url}::{field_name}::{parent_value}::{field_value}".format(url=url, **params)
-                    
+
                     if cache.get(cache_key):
                         field.choices = cache.get(cache_key)
                     else:
                         # Note: One should force urls used by the test client.
                         # See: https://code.djangoproject.com/ticket/18776
                         data = c.get(force_str(url), params)
-                        
+
                         if smart_str(data.content):
                             try:
                                 field.choices = field.choices + json.loads(smart_str(data.content))
@@ -111,7 +111,7 @@ class ChainedChoicesMixin(object):
                                     'url': url,
                                     'params': params
                                 })
-                        
+
                         cache.set(cache_key, field.choices, 60)
 
                 field.initial = field_value
