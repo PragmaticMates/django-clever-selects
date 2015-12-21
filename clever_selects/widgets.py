@@ -45,7 +45,7 @@ class ChainedSelect(Select):
                     else
                         parent_field.attr('chained_ids', chained_ids + ",%(chained_id)s");
 
-                    $(document).on('change', '.chained-parent-field', function() {
+                    parent_field.on('change', function() {
                         $(this).loadAllChainedChoices();
                     });
                 });
