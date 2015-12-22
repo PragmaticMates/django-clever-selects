@@ -1,17 +1,18 @@
-
 from __future__ import absolute_import
 
 import json
 
 from django import forms
+from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import resolve
 from django.core.validators import EMPTY_VALUES
 from django.db import models
-from django.utils.encoding import force_str, smart_str, force_text
+from django.http.request import HttpRequest
+from django.utils.encoding import smart_str, force_text
 
 from .form_fields import ChainedChoiceField, ChainedModelChoiceField
-from .testclient import TestClient
 
 
 class ChainedChoicesMixin(object):
@@ -91,26 +92,37 @@ class ChainedChoicesMixin(object):
                     if cache.get(cache_key):
                         field.choices = cache.get(cache_key)
                     else:
-                        c = TestClient(HTTP_HOST="clever-selects.client")
+                        # This will get the callable from the url.
+                        # All we need to do is pass in a 'request'
+                        url_callable = resolve(url).func
 
-                        try:
-                            if self.user:
-                                c.login_user(self.user)
-                        except AttributeError:
-                            pass
+                        # Build the fake request
+                        fake_request = HttpRequest()
+                        fake_request.META["SERVER_NAME"] = "localhost"
+                        fake_request.META["SERVER_PORT"] = '80'
 
-                        # Note: One should force urls used by the test client.
-                        # See: https://code.djangoproject.com/ticket/18776
-                        data = c.get(force_str(url), params)
+                        # Add parameters and user if supplied
+                        fake_request.method = "GET"
+                        for key, value in params.items():
+                            fake_request.GET[key] = value
 
-                        if smart_str(data.content):
+                        if hasattr(self, "user") and self.user:
+                            fake_request.user = self.user
+                        else:
+                            fake_request.user = AnonymousUser()
+
+                        # Get the response
+                        response = url_callable(fake_request)
+
+                        # Apply the data (if it's returned)
+                        if smart_str(response.content):
                             try:
-                                field.choices = field.choices + json.loads(smart_str(data.content))
+                                field.choices += json.loads(smart_str(response.content))
                             except ValueError:
-                                raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object' % {
-                                    'url': url,
-                                    'params': params
-                                })
+                                raise ValueError('Data returned from request (url={url}, params={params}) could not be deserialized to Python object'.format(
+                                    url=url,
+                                    params=params
+                                ))
 
                         cache.set(cache_key, field.choices, 60)
 
