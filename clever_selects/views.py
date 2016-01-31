@@ -1,4 +1,6 @@
-__author__ = 'Erik Telepovsky'
+'''
+@author: Erik Telepovsky
+'''
 
 import json
 
