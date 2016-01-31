@@ -4,7 +4,6 @@ import json
 
 from django import forms
 from django.contrib.auth.models import AnonymousUser
-from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import resolve
 from django.core.validators import EMPTY_VALUES
@@ -87,44 +86,38 @@ class ChainedChoicesMixin(object):
                         'parent_value': parent_value,
                         'field_value': field_value
                     }
-                    cache_key = "clever-selects::{url}::{field_name}::{parent_value}::{field_value}".format(url=url, **params)
 
-                    if cache.get(cache_key):
-                        field.choices = cache.get(cache_key)
+                    # This will get the callable from the url.
+                    # All we need to do is pass in a 'request'
+                    url_callable = resolve(url).func
+
+                    # Build the fake request
+                    fake_request = HttpRequest()
+                    fake_request.META["SERVER_NAME"] = "localhost"
+                    fake_request.META["SERVER_PORT"] = '80'
+
+                    # Add parameters and user if supplied
+                    fake_request.method = "GET"
+                    for key, value in params.items():
+                        fake_request.GET[key] = value
+
+                    if hasattr(self, "user") and self.user:
+                        fake_request.user = self.user
                     else:
-                        # This will get the callable from the url.
-                        # All we need to do is pass in a 'request'
-                        url_callable = resolve(url).func
+                        fake_request.user = AnonymousUser()
 
-                        # Build the fake request
-                        fake_request = HttpRequest()
-                        fake_request.META["SERVER_NAME"] = "localhost"
-                        fake_request.META["SERVER_PORT"] = '80'
+                    # Get the response
+                    response = url_callable(fake_request)
 
-                        # Add parameters and user if supplied
-                        fake_request.method = "GET"
-                        for key, value in params.items():
-                            fake_request.GET[key] = value
-
-                        if hasattr(self, "user") and self.user:
-                            fake_request.user = self.user
-                        else:
-                            fake_request.user = AnonymousUser()
-
-                        # Get the response
-                        response = url_callable(fake_request)
-
-                        # Apply the data (if it's returned)
-                        if smart_str(response.content):
-                            try:
-                                field.choices += json.loads(smart_str(response.content))
-                            except ValueError:
-                                raise ValueError('Data returned from request (url={url}, params={params}) could not be deserialized to Python object'.format(
-                                    url=url,
-                                    params=params
-                                ))
-
-                        cache.set(cache_key, field.choices, 60)
+                    # Apply the data (if it's returned)
+                    if smart_str(response.content):
+                        try:
+                            field.choices += json.loads(smart_str(response.content))
+                        except ValueError:
+                            raise ValueError('Data returned from request (url={url}, params={params}) could not be deserialized to Python object'.format(
+                                url=url,
+                                params=params
+                            ))
 
                 field.initial = field_value
 
