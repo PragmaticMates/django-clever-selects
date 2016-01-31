@@ -21,7 +21,6 @@ class ChainedSelect(Select):
 
     def render(self, name, value, attrs={}, choices=()):
         field_prefix = attrs['id'][:attrs['id'].rfind('-') + 1]
-        formset_prefix = attrs['id'][:attrs['id'].find('-') + 1]
 
         if not field_prefix:
             parentfield_id = "id_" + self.parent_field
