@@ -1,5 +1,7 @@
 from django.forms.widgets import Select
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
+from django.forms.utils import flatatt
 
 
 class ChainedSelect(Select):
@@ -30,8 +32,6 @@ class ChainedSelect(Select):
         attrs.update(self.attrs)
         attrs['ajax_url'] = self.ajax_url
 
-        output = super(ChainedSelect, self).render(name, value, attrs=attrs, choices=choices)
-
         js = """
         <script type="text/javascript">
             (function($) {
@@ -50,8 +50,19 @@ class ChainedSelect(Select):
                 });
             })(jQuery || django.jQuery);
         </script>
-
         """ % {"parentfield_id": parentfield_id, 'chained_id': attrs['id']}
+
+        if value is None:
+            value = ''
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = [format_html('<select{}>', flatatt(final_attrs))]
+        options = self.render_options(choices, [value])
+        if options:
+            output.append(options)
+        output.append(js)
+        output.append('</select>')
+        return mark_safe('\n'.join(output))
+
 
 #        TODO: check admin compatiblity with this syntax:
 #        js = """
