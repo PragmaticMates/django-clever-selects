@@ -38,7 +38,7 @@ class ChainedModelChoiceMixin(object):
         self.queryset = model.objects.none()
         self.empty_label = kwargs.get('empty_label', None)
 
-        super().__init__(queryset=self.queryset, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def valid_value(self, value):
         """Dynamic choices so just return True for now"""
@@ -84,6 +84,7 @@ class ChainedModelMultipleChoiceField(ChainedModelChoiceMixin, ModelMultipleChoi
     def __init__(self, parent_field, ajax_url, model, *args, **kwargs):
         defaults = {
             'widget': ChainedSelectMultiple(parent_field=parent_field, ajax_url=ajax_url),
+            'queryset': model.objects.none()
         }
         defaults.update(kwargs)
 
