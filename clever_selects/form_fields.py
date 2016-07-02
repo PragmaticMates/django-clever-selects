@@ -3,9 +3,9 @@ from __future__ import absolute_import
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.forms import ChoiceField
-from django.forms.models import ModelChoiceField
+from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 
-from .widgets import ChainedSelect
+from .widgets import ChainedSelect, ChainedSelectMultiple
 
 
 class ChainedChoiceField(ChoiceField):
@@ -29,23 +29,16 @@ class ChainedChoiceField(ChoiceField):
         return True
 
 
-class ChainedModelChoiceField(ModelChoiceField):
+class ChainedModelChoiceMixin(object):
 
-    def __init__(self, parent_field, ajax_url, model, empty_label='--------', *args, **kwargs):
-
+    def __init__(self, parent_field, ajax_url, model, *args, **kwargs):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
         self.model = model
-        # self.queryset = model.objects.all()  # Large querysets could take long time to load all values (django-cities)
         self.queryset = model.objects.none()
-        self.empty_label = empty_label
+        self.empty_label = kwargs.get('empty_label', None)
 
-        defaults = {
-            'widget': ChainedSelect(parent_field=parent_field, ajax_url=ajax_url, attrs={'empty_label': empty_label}),
-        }
-        defaults.update(kwargs)
-
-        super(ChainedModelChoiceField, self).__init__(queryset=self.queryset, empty_label=empty_label, *args, **defaults)
+        super().__init__(queryset=self.queryset, *args, **kwargs)
 
     def valid_value(self, value):
         """Dynamic choices so just return True for now"""
@@ -66,10 +59,32 @@ class ChainedModelChoiceField(ModelChoiceField):
         """
         Validates that the input is in self.choices.
         """
-        super(ChoiceField, self).validate(value)
+        super().validate(value)
         if value and not self.valid_value(value):
             raise ValidationError(
                 self.error_messages['invalid_choice'],
                 code='invalid_choice',
                 params={'value': value},
             )
+
+
+class ChainedModelChoiceField(ChainedModelChoiceMixin, ModelChoiceField):
+
+    def __init__(self, parent_field, ajax_url, model, empty_label='--------', *args, **kwargs):
+        defaults = {
+            'widget': ChainedSelect(parent_field=parent_field, ajax_url=ajax_url, attrs={'empty_label': empty_label}),
+        }
+        defaults.update(kwargs)
+
+        super().__init__(parent_field, ajax_url, model, empty_label, *args, **defaults)
+
+
+class ChainedModelMultipleChoiceField(ChainedModelChoiceMixin, ModelMultipleChoiceField):
+
+    def __init__(self, parent_field, ajax_url, model, *args, **kwargs):
+        defaults = {
+            'widget': ChainedSelectMultiple(parent_field=parent_field, ajax_url=ajax_url),
+        }
+        defaults.update(kwargs)
+
+        super().__init__(parent_field, ajax_url, model, *args, **defaults)

@@ -13,7 +13,9 @@
                 },
                 function(j) {
                     var options = '';
-                    options += '<option value="">' + empty_label + '</option>';
+                    console.log(child);
+                    if (!child[0].hasAttribute('multiple'))
+                        options += '<option value="">' + empty_label + '</option>';
                     for (var i = 0; i < j.length; i++) {
                         options += '<option value="' + j[i][0] + '">' + j[i][1] + '</option>';
                     }

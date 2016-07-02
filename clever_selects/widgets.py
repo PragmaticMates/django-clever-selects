@@ -1,22 +1,15 @@
-from django.forms.widgets import Select
+from django.forms.widgets import Select, SelectMultiple
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 from django.forms.utils import flatatt
 
 
-class ChainedSelect(Select):
-    """
-    A ChoiceField widget where the options for the select are dependant on the value of the parent select field.
-    When the parent field is changed an ajax call is made to determine the options.
-
-    Form must inherit from ChainedChoicesMixin (or from helper forms ChainedChoicesForm and ChainedChoicesModelForm)
-    which loads the options when there is already an instance or initial data.
-    """
+class ChainedSelectMixin(object):
 
     def __init__(self, parent_field=None, ajax_url=None, *args, **kwargs):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
-        super(ChainedSelect, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     class Media:
         js = ['js/clever-selects.js']
@@ -55,7 +48,7 @@ class ChainedSelect(Select):
         if value is None:
             value = ''
         final_attrs = self.build_attrs(attrs, name=name)
-        output = [format_html('<select{}>', flatatt(final_attrs))]
+        output = [format_html(self.html_template, flatatt(final_attrs))]
         options = self.render_options(choices, [value])
         if options:
             output.append(options)
@@ -77,3 +70,18 @@ class ChainedSelect(Select):
         output += js
 
         return mark_safe(output)
+
+
+class ChainedSelect(ChainedSelectMixin, Select):
+    """
+    A ChoiceField widget where the options for the select are dependant on the value of the parent select field.
+    When the parent field is changed an ajax call is made to determine the options.
+
+    Form must inherit from ChainedChoicesMixin (or from helper forms ChainedChoicesForm and ChainedChoicesModelForm)
+    which loads the options when there is already an instance or initial data.
+    """
+    html_template = '<select{}>'
+
+
+class ChainedSelectMultiple(ChainedSelectMixin, SelectMultiple):
+    html_template = '<select multiple="multiple"{}>'
