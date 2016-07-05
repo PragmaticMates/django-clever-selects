@@ -85,3 +85,6 @@ class ChainedSelect(ChainedSelectMixin, Select):
 
 class ChainedSelectMultiple(ChainedSelectMixin, SelectMultiple):
     html_template = '<select multiple="multiple"{}>'
+
+    def render_options(self, choices, selected_choices):
+        return ''
