@@ -11,7 +11,7 @@ from django.db import models
 from django.http.request import HttpRequest
 from django.utils.encoding import smart_str, force_text
 
-from .form_fields import ChainedChoiceField, ChainedModelChoiceField
+from .form_fields import ChainedChoiceField, ChainedModelChoiceField, ChainedModelMultipleChoiceField
 
 
 class ChainedChoicesMixin(object):
@@ -27,7 +27,7 @@ class ChainedChoicesMixin(object):
 
     def init_chained_choices(self, *args, **kwargs):
         self.chained_fields_names = self.get_fields_names_by_type(ChainedChoiceField)
-        self.chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
+        self.chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField) + self.get_fields_names_by_type(ChainedModelMultipleChoiceField)
         self.user = kwargs.get('user', self.user)
 
         if kwargs.get('data', None) is not None:
@@ -61,6 +61,7 @@ class ChainedChoicesMixin(object):
     def set_choices_via_ajax(self, kwargs=None, is_initial=False):
         for field_name in self.chained_fields_names + self.chained_model_fields_names:
             field = self.fields[field_name]
+
             try:
                 if kwargs is not None:
                     # initial data do not have any prefix
@@ -71,8 +72,14 @@ class ChainedChoicesMixin(object):
                         parent_value = kwargs.get('%s-%s' % (self.prefix, field.parent_field), None)
                         field_value = kwargs.get('%s-%s' % (self.prefix, field_name), None)
                 else:
-                    parent_value = getattr(self, '%s' % field.parent_field, None)
-                    field_value = getattr(self, '%s' % field_name, None)
+                    parent_value = self.initial.get(field.parent_field, None)
+                    field_value = self.initial.get(field_name, None)
+
+                    if parent_value is None:
+                        parent_value = getattr(self, '%s' % field.parent_field, None)
+
+                    if field_value is None:
+                        field_value = getattr(self, '%s' % field_name, None)
 
                 field.choices = [('', field.empty_label)]
 
