@@ -30,7 +30,10 @@ class ChainedSelect(Select):
         attrs.update(self.attrs)
         attrs['ajax_url'] = self.ajax_url
 
-        output = super(ChainedSelect, self).render(name, value, attrs=attrs, choices=choices)
+        try:
+            output = super(ChainedSelect, self).render(name, value, attrs=attrs, choices=choices)
+        except TypeError:
+            output = super(ChainedSelect, self).render(name, value, attrs=attrs)
 
         js = """
         <script type="text/javascript">
@@ -49,7 +52,7 @@ class ChainedSelect(Select):
 
         """ % {"parentfield_id": parentfield_id, 'chained_id': attrs['id']}
 
-#        TODO: check admin compatiblity with this syntax:
+#        TODO: check admin compatibility with this syntax:
 #        js = """
 #        <script type="text/javascript">
 #        //<![CDATA[
