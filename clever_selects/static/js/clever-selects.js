@@ -3,15 +3,13 @@ function loadChildChoices(parentField, child) {
     var ajaxUrl = valueField.getAttribute("ajax_url");
     var emptyLabel = valueField.getAttribute('empty_label') || '--------';
 
-    var URLParams = new URLSearchParams();
-    URLParams.append("field", valueField.getAttribute("name"));
-    URLParams.append("parent_field", parentField.getAttribute("name"));
-    URLParams.append("parent_value", parentField.value);
-
     var headers = new Headers();
     headers.append("Accept", "application/json");
 
-    var request = new Request(ajaxUrl + "?" + URLParams.toString(), {method: "GET", headers: headers});
+    var request = new Request(
+        ajaxUrl + "?field=" + valueField.getAttribute("name") + "&parent_field=" + parentField.getAttribute("name") + "&parent_value=" + parentField.value,
+        {method: "GET", headers: headers}
+    );
 
     fetch(request).then(function(response) {
         return response.json();
