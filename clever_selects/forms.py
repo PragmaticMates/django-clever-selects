@@ -1,14 +1,17 @@
-__author__ = 'Erik Telepovsky'
+from __future__ import absolute_import
 
 import json
 
 from django import forms
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import resolve
 from django.core.validators import EMPTY_VALUES
 from django.db import models
+from django.http.request import HttpRequest
+from django.utils.encoding import smart_str, force_text
 
-from .form_fields import ChainedChoiceField, ChainedModelChoiceField
-from .testclient import TestClient
+from .form_fields import ChainedChoiceField, ChainedModelChoiceField, ChainedModelMultipleChoiceField
 
 
 class ChainedChoicesMixin(object):
@@ -24,7 +27,7 @@ class ChainedChoicesMixin(object):
 
     def init_chained_choices(self, *args, **kwargs):
         self.chained_fields_names = self.get_fields_names_by_type(ChainedChoiceField)
-        self.chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField)
+        self.chained_model_fields_names = self.get_fields_names_by_type(ChainedModelChoiceField) + self.get_fields_names_by_type(ChainedModelMultipleChoiceField)
         self.user = kwargs.get('user', self.user)
 
         if kwargs.get('data', None) is not None:
@@ -58,17 +61,10 @@ class ChainedChoicesMixin(object):
     def set_choices_via_ajax(self, kwargs=None, is_initial=False):
         for field_name in self.chained_fields_names + self.chained_model_fields_names:
             field = self.fields[field_name]
+
             try:
-                c = TestClient()
-
-                try:
-                    if self.user:
-                        c.login_user(self.user)
-                except AttributeError:
-                    pass
-
                 if kwargs is not None:
-                    # inital data do not have any prefix
+                    # initial data do not have any prefix
                     if self.prefix in EMPTY_VALUES or is_initial:
                         parent_value = kwargs.get(field.parent_field, None)
                         field_value = kwargs.get(field_name, None)
@@ -76,8 +72,14 @@ class ChainedChoicesMixin(object):
                         parent_value = kwargs.get('%s-%s' % (self.prefix, field.parent_field), None)
                         field_value = kwargs.get('%s-%s' % (self.prefix, field_name), None)
                 else:
-                    parent_value = getattr(self, '%s' % field.parent_field, None)
-                    field_value = getattr(self, '%s' % field_name, None)
+                    parent_value = self.initial.get(field.parent_field, None)
+                    field_value = self.initial.get(field_name, None)
+
+                    if parent_value is None:
+                        parent_value = getattr(self, '%s' % field.parent_field, None)
+
+                    if field_value is None:
+                        field_value = getattr(self, '%s' % field_name, None)
 
                 field.choices = [('', field.empty_label)]
 
@@ -85,33 +87,55 @@ class ChainedChoicesMixin(object):
                 if parent_value:
                     parent_value = getattr(parent_value, 'pk', parent_value)
 
-                    url = field.ajax_url
+                    url = force_text(field.ajax_url)
                     params = {
                         'field_name': field_name,
                         'parent_value': parent_value,
                         'field_value': field_value
                     }
-                    data = c.get(url, params)
 
-                    try:
-                        field.choices = field.choices + json.loads(data.content)
-                    except ValueError:
-                        raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object: %(data)s' % {
-                            'url': url,
-                            'params': params,
-                            'data': data.content
-                        })
+                    # This will get the callable from the url.
+                    # All we need to do is pass in a 'request'
+                    url_callable = resolve(url).func
+
+                    # Build the fake request
+                    fake_request = HttpRequest()
+                    fake_request.META["SERVER_NAME"] = "localhost"
+                    fake_request.META["SERVER_PORT"] = '80'
+
+                    # Add parameters and user if supplied
+                    fake_request.method = "GET"
+                    for key, value in params.items():
+                        fake_request.GET[key] = value
+
+                    if hasattr(self, "user") and self.user:
+                        fake_request.user = self.user
+                    else:
+                        fake_request.user = AnonymousUser()
+
+                    # Get the response
+                    response = url_callable(fake_request)
+
+                    # Apply the data (if it's returned)
+                    if smart_str(response.content):
+                        try:
+                            field.choices += json.loads(smart_str(response.content))
+                        except ValueError:
+                            raise ValueError('Data returned from request (url={url}, params={params}) could not be deserialized to Python object'.format(
+                                url=url,
+                                params=params
+                            ))
 
                 field.initial = field_value
 
             except ObjectDoesNotExist:
                 field.choices = ()
 
-    def get_fields_names_by_type(self, type):
+    def get_fields_names_by_type(self, type_):
         result = []
         for field_name in self.fields:
             field = self.fields[field_name]
-            if isinstance(field, type):
+            if isinstance(field, type_):
                 result.append(field_name)
         return result
 
@@ -162,7 +186,7 @@ class ChainedChoicesMixin(object):
         field = self.fields[attr_name]
         if hasattr(instance, attr_name):
             attribute = getattr(instance, attr_name)
-            attr_value = getattr(attribute, 'pk', unicode(attribute)) if attribute else None
+            attr_value = getattr(attribute, 'pk', smart_str(attribute)) if attribute else None
             setattr(self, '%s' % attr_name, attr_value)
 
             if hasattr(field, 'parent_field'):
@@ -176,7 +200,10 @@ class ChainedChoicesForm(forms.Form, ChainedChoicesMixin):
     If there is request POST data in *args (i.e. form validation was invalid)
     then the options will be loaded when the form is built.
     """
+
     def __init__(self, language_code=None, *args, **kwargs):
+        if kwargs.get('user'):
+            self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
         super(ChainedChoicesForm, self).__init__(*args, **kwargs)
         self.language_code = language_code
         self.init_chained_choices(*args, **kwargs)
@@ -196,9 +223,12 @@ class ChainedChoicesModelForm(forms.ModelForm, ChainedChoicesMixin):
     If there is already an instance (i.e. editing)
     then the options will be loaded when the form is built.
     """
-    def __init__(self, language_code=None, *args, **kwargs):
+
+    def __init__(self, *args, **kwargs):
+        if kwargs.get('user'):
+            self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
         super(ChainedChoicesModelForm, self).__init__(*args, **kwargs)
-        self.language_code = language_code
+        self.language_code = kwargs.get('language_code', None)
         self.init_chained_choices(*args, **kwargs)
 
     def is_valid(self):

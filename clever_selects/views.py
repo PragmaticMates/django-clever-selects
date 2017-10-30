@@ -1,4 +1,6 @@
-__author__ = 'Erik Telepovsky'
+'''
+@author: Erik Telepovsky
+'''
 
 import json
 
@@ -8,6 +10,14 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.utils.cache import add_never_cache_headers
 from django.views.generic.base import View
+
+
+class ChainedSelectFormViewMixin(object):
+
+    def get_form_kwargs(self):
+        kwargs = super(ChainedSelectFormViewMixin, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
 
 
 class ChainedSelectChoicesView(View):

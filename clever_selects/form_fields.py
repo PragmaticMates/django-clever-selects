@@ -1,14 +1,15 @@
+from __future__ import absolute_import
+
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.forms import ChoiceField
-from django.forms.models import ModelChoiceField
+from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
 
-from .widgets import ChainedSelect
+from .widgets import ChainedSelect, ChainedSelectMultiple
 
 
 class ChainedChoiceField(ChoiceField):
     def __init__(self, parent_field, ajax_url, choices=None, empty_label='--------', *args, **kwargs):
-
         self.parent_field = parent_field
         self.ajax_url = ajax_url
         self.choices = choices or (('', empty_label), )
@@ -28,11 +29,10 @@ class ChainedChoiceField(ChoiceField):
 
 class ChainedModelChoiceField(ModelChoiceField):
     def __init__(self, parent_field, ajax_url, model, empty_label='--------', *args, **kwargs):
-
         self.parent_field = parent_field
         self.ajax_url = ajax_url
         self.model = model
-        #self.queryset = model.objects.all()  # Large querysets could take long time to load all values (django-cities)
+        # self.queryset = model.objects.all()  # Large querysets could take long time to load all values (django-cities)
         self.queryset = model.objects.none()
         self.empty_label = empty_label
 
@@ -69,3 +69,18 @@ class ChainedModelChoiceField(ModelChoiceField):
                 code='invalid_choice',
                 params={'value': value},
             )
+
+
+class ChainedModelMultipleChoiceField(ModelMultipleChoiceField):
+    def __init__(self, parent_field, ajax_url, model, *args, **kwargs):
+        self.parent_field = parent_field
+        self.ajax_url = ajax_url
+        self.model = model
+        self.queryset = model.objects.all()
+
+        defaults = {
+            'widget': ChainedSelectMultiple(parent_field=parent_field, ajax_url=ajax_url),
+        }
+        defaults.update(kwargs)
+
+        super().__init__(queryset=self.queryset, *args, **defaults)
