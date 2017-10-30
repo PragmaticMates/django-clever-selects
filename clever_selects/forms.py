@@ -7,8 +7,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 
-from form_fields import ChainedChoiceField, ChainedModelChoiceField
-from testclient import TestClient
+from .form_fields import ChainedChoiceField, ChainedModelChoiceField
+from .testclient import TestClient
 
 
 class ChainedChoicesMixin(object):
@@ -96,9 +96,10 @@ class ChainedChoicesMixin(object):
                     try:
                         field.choices = field.choices + json.loads(data.content)
                     except ValueError:
-                        raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object' % {
+                        raise ValueError(u'Data returned from ajax request (url=%(url)s, params=%(params)s) could not be deserialized to Python object: %(data)s' % {
                             'url': url,
-                            'params': params
+                            'params': params,
+                            'data': data.content
                         })
 
                 field.initial = field_value
