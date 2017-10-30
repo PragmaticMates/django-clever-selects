@@ -1,2 +1,3 @@
 include README.rst
 recursive-include clever_selects/static *
+recursive-include clever_selects/templates *

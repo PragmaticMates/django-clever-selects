@@ -73,6 +73,15 @@ which loads the options when there is already an instance or initial data::
 
 Notice that ajax URLs could differ of each field for different purposes. See example project for more use cases.
 
+In order to pre-populate child fields, the form can need to have access to the current user. This can be done by passing
+the user to the kwargs of the form's __init__() method in the form's view. The ChainedSelectFormViewMixin takes care
+of this for you.::
+
+    class CreateCarView(ChainedSelectFormViewMixin, CreateView)
+        template_name = "create_car.html"
+        form_class = ModelChainForm
+        model = Car
+
 Views
 '''''
 
@@ -101,7 +110,7 @@ Ajax call is made whenever the parent field is changed. You must set up the ajax
             return response
 
 
-Or you can use ``ChainedSelectChoicesView`` class helper::
+Or you can use ``ChainedSelectChoicesView`` class helper like this::
 
     class AjaxChainedView(ChainedSelectChoicesView):
         def get_choices(self):
@@ -110,6 +119,11 @@ Or you can use ``ChainedSelectChoicesView`` class helper::
                 vals_list.append(x*int(self.parent_value))
             return tuple(zip(vals_list, vals_list))
 
+or like this::
+
+    class AjaxChainedView(ChainedSelectChoicesView):
+        def get_child_set(self):
+            return ChildModel.object.filter(parent_id=self.parent_value)
 
 Don't forget to update your urls.py::
 
