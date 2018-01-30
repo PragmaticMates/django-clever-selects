@@ -8,7 +8,11 @@ function loadChildChoices(parentField, child) {
 
     var request = new Request(
         ajaxUrl + "?field=" + valueField.getAttribute("name") + "&parent_field=" + parentField.getAttribute("name") + "&parent_value=" + parentField.value,
-        {method: "GET", headers: headers}
+        {
+            method: "GET",
+            headers: headers,
+            credentials: 'same-origin'
+        }
     );
 
     fetch(request).then(function(response) {
@@ -40,3 +44,18 @@ function loadAllChainedChoices(parentField) {
         loadChildChoices(parentField, child);
     });
 };
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    var parentFields = document.querySelectorAll(".chained-parent-field");
+
+    parentFields.forEach(function(parentField) {
+        if ( parentField.classList.contains('chzn-done') ) {
+            $(parentField).change(function() {
+                loadAllChainedChoices(this);
+            });
+        } else {
+            parentField.addEventListener("change", function() { loadAllChainedChoices(this); });
+        }
+    });
+});
