@@ -5,7 +5,12 @@ import json
 from django import forms
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import resolve
+
+try:
+    from django.urls import reverse
+except:
+    from django.core.urlresolvers import reverse
+
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.http.request import HttpRequest
