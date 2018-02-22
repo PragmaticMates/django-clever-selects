@@ -7,9 +7,9 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
 
 try:
-    from django.urls import reverse
+    from django.urls import reverse, resolve
 except:
-    from django.core.urlresolvers import reverse
+    from django.core.urlresolvers import reverse, resolve
 
 from django.core.validators import EMPTY_VALUES
 from django.db import models
