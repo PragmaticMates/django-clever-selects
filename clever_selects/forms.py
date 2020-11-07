@@ -126,9 +126,10 @@ class ChainedChoicesMixin(object):
                         try:
                             field.choices += json.loads(smart_str(response.content))
                         except ValueError:
-                            raise ValueError('Data returned from request (url={url}, params={params}) could not be deserialized to Python object'.format(
+                            raise ValueError('Data returned from request (url={url}, params={params}) could not be deserialized to Python object: {data}'.format(
                                 url=url,
-                                params=params
+                                params=params,
+                                data=response.content
                             ))
 
                 field.initial = field_value
