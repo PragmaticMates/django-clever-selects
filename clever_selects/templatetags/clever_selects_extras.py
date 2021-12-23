@@ -6,6 +6,8 @@ from django.conf import settings
 from django.core.files.storage import get_storage_class
 from django.utils.safestring import mark_safe
 
+from clever_selects import VERSION
+
 staticfiles_storage = get_storage_class(settings.STATICFILES_STORAGE)()
 
 register = template.Library()
@@ -32,4 +34,4 @@ def clever_selects_js_import(context, csrf=True):
                     "to your TEMPLATE_CONTEXT_PROCESSORS and render your views using a RequestContext.")
 
     url = staticfiles_storage.url('js/clever-selects.js')
-    return mark_safe('<script src="%s" type="text/javascript" charset="utf-8"></script>' % url)
+    return mark_safe('<script src="%s?v=%s" type="text/javascript" charset="utf-8"></script>' % (url,  VERSION))
