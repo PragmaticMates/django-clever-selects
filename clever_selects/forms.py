@@ -14,7 +14,7 @@ except:
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.http.request import HttpRequest
-from django.utils.encoding import smart_str, force_text
+from django.utils.encoding import smart_str, force_str
 
 from .form_fields import ChainedChoiceField, ChainedModelChoiceField, ChainedModelMultipleChoiceField
 
@@ -92,7 +92,7 @@ class ChainedChoicesMixin(object):
                 if parent_value:
                     parent_value = getattr(parent_value, 'pk', parent_value)
 
-                    url = force_text(field.ajax_url)
+                    url = force_str(field.ajax_url)
                     params = {
                         'field_name': field_name,
                         'parent_value': parent_value,
