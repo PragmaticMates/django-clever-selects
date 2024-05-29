@@ -1,5 +1,5 @@
 {% include "django/forms/widgets/select.html" %}
-<script type="text/javascript">
+<script type="text/javascript" nonce="{{ request.csp_nonce }}">
     "use strict";
 
     document.addEventListener("DOMContentLoaded", function() {
