@@ -12,10 +12,10 @@ class ChainedSelectMixin(object):
 
     template_name = 'clever_selects/widgets/chained_select.html'
 
-    def __init__(self, parent_field=None, ajax_url=None, csp_nonce=None, *args, **kwargs):
+    def __init__(self, parent_field=None, ajax_url=None, *args, **kwargs):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
-        self.csp_nonce = csp_nonce
+        self.csp_nonce = None
         super(ChainedSelectMixin, self).__init__(*args, **kwargs)
 
     def get_context(self, name, value, attrs):
