@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext_lazy as _, ugettext
+from django.utils.translation import gettext_lazy as _, gettext
 from django.views.generic import FormView, TemplateView, CreateView, UpdateView, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import DeletionMixin
@@ -32,12 +32,12 @@ class ExampleFormViewMixin(object):
         return reverse(self.success_url)
 
     def form_valid(self, form):
-        self.request.session['message'] = _(u'Form is valid! Submitted data: %s') % smart_unicode(
+        self.request.session['message'] = _('Form is valid! Submitted data: %s') % smart_unicode(
             form.cleaned_data, errors='replace')
         return super(ExampleFormViewMixin, self).form_valid(form)
 
     def form_invalid(self, form):
-        self.message = _(u'Form is invalid!')
+        self.message = _('Form is invalid!')
         return super(ExampleFormViewMixin, self).form_invalid(form)
 
 
@@ -45,21 +45,21 @@ class SimpleChainView(ExampleFormViewMixin, FormView):
     form_class = SimpleChainForm
     template_name = 'form.html'
     success_url = 'simple_chain'
-    title = _(u'Simple chain')
+    title = _('Simple chain')
 
 
 class MultipleChainView(ExampleFormViewMixin, FormView):
     form_class = MultipleChainForm
     template_name = 'form.html'
     success_url = 'multiple_chain'
-    title = _(u'Multiple chain')
+    title = _('Multiple chain')
 
 
 class ModelChainView(ExampleFormViewMixin, CreateView):
     form_class = ModelChainForm
     template_name = 'cars.html'
     success_url = 'model_chain'
-    title = _(u'Model chain')
+    title = _('Model chain')
 
     def get_context_data(self, **kwargs):
         context_data = super(ModelChainView, self).get_context_data(**kwargs)
@@ -74,7 +74,7 @@ class EditCarView(ExampleFormViewMixin, UpdateView):
     form_class = ModelChainForm
     template_name = 'form.html'
     success_url = 'model_chain'
-    title = _(u'Update car')
+    title = _('Update car')
     model = Car
 
 
@@ -137,14 +137,14 @@ class AjaxChainedColors(ChainedSelectChoicesView):
             model = BrandModel.objects.get(pk=self.parent_value)
             if 'Sportback' in model.title or 'Cabrio' in model.title or 'Coupe' in model.title:
                 return [
-                    ('RED', ugettext(u'red')),
-                    ('WHITE', ugettext(u'white')),
-                    ('BLACK', ugettext(u'black')),
-                    ('YELLOW', ugettext(u'yellow')),
-                    ('SILVER', ugettext(u'silver')),
+                    ('RED', gettext('red')),
+                    ('WHITE', gettext('white')),
+                    ('BLACK', gettext('black')),
+                    ('YELLOW', gettext('yellow')),
+                    ('SILVER', gettext('silver')),
                 ]
             for color in Car.COLORS:
-                choices.append((color[0], ugettext(color[1])))
+                choices.append((color[0], gettext(color[1])))
             return choices
         except (ObjectDoesNotExist, KeyError):
             return []

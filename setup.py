@@ -18,10 +18,10 @@ setup(
         'clever_selects.templatetags'
     ],
     include_package_data=True,
-    install_requires=('django',),
+    install_requires=('django>=3',),
     classifiers=[
         'Programming Language :: Python',
-	'Operating System :: OS Independent',
+	      'Operating System :: OS Independent',
         'Environment :: Web Environment',        
         'Intended Audience :: Developers',
         'Framework :: Django',

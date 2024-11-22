@@ -60,12 +60,12 @@ which loads the options when there is already an instance or initial data::
 
     class ModelChainForm(ChainedChoicesModelForm):
         brand = forms.ModelChoiceField(queryset=CarBrand.objects.all(), required=True,
-            empty_label=_(u'Select a car brand'))
+            empty_label=_('Select a car brand'))
         model = ChainedModelChoiceField(parent_field='brand', ajax_url=reverse_lazy('ajax_chained_models'),
-            empty_label=_(u'Select a car model'), model=BrandModel, required=True)
+            empty_label=_('Select a car model'), model=BrandModel, required=True)
         engine = forms.ChoiceField(choices=([('', _('All engine types'))] + Car.ENGINES), required=False)
         color = ChainedChoiceField(parent_field='model', ajax_url=reverse_lazy('ajax_chained_colors'),
-            empty_label=_(u'Select a car model'), required=False)
+            empty_label=_('Select a car model'), required=False)
 
         class Meta:
             model = Car
