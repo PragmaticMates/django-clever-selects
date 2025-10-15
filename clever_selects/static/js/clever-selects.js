@@ -1,6 +1,7 @@
 function loadChildChoices(parentField, child) {
     var valueField = child;
     var ajaxUrl = valueField.getAttribute("ajax_url");
+    var required = child.required;
     var emptyLabel = valueField.getAttribute('empty_label') || '--------';
 
     var headers = new Headers();
@@ -23,9 +24,9 @@ function loadChildChoices(parentField, child) {
         if (!child[0].hasAttribute("multiple")) {
             optionsHTML += '<option value="">' + emptyLabel + '</option>';
         }
-
-        options.forEach(function(option) {
-            optionsHTML += '<option value="' + option[0] + '">' + option[1] + '</option>';
+        options.forEach(([value, label]) => {
+            const selected = required && value != '' && options.length == 1 ? ' selected' : '';
+            optionsHTML += `<option value="${value}"${selected}>${label}</option>`;
         });
 
         valueField.innerHTML = optionsHTML;
