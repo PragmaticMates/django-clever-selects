@@ -12,15 +12,15 @@ class ChainedChoiceField(ChoiceField):
     def __init__(self, parent_field, ajax_url, choices=None, empty_label='--------', *args, **kwargs):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
-        self.choices = choices or (('', empty_label), )
         self.empty_label = empty_label
+        choices = choices or (('', empty_label), )
 
         defaults = {
             'widget': ChainedSelect(parent_field=parent_field, ajax_url=ajax_url, attrs={'empty_label': empty_label}),
         }
         defaults.update(kwargs)
 
-        super(ChainedChoiceField, self).__init__(choices=self.choices, *args, **defaults)
+        super(ChainedChoiceField, self).__init__(choices=choices, *args, **defaults)
 
     def valid_value(self, value):
         """Dynamic choices so just return True for now"""
