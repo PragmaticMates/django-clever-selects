@@ -13,14 +13,14 @@ class ChainedChoiceField(ChoiceField):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
         self.empty_label = empty_label
-        self.choices = choices or (('', empty_label), )
+        choices = choices or (('', empty_label), )
 
         defaults = {
             'widget': ChainedSelect(parent_field=parent_field, ajax_url=ajax_url, attrs={'empty_label': empty_label}),
         }
         defaults.update(kwargs)
 
-        super(ChainedChoiceField, self).__init__(choices=self.choices, *args, **defaults)
+        super(ChainedChoiceField, self).__init__(choices=choices, *args, **defaults)
 
     def valid_value(self, value):
         """Dynamic choices so just return True for now"""
@@ -32,8 +32,8 @@ class ChainedModelChoiceField(ModelChoiceField):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
         self.model = model
-        # self.queryset = model.objects.all()  # Large querysets could take long time to load all values (django-cities)
-        self.queryset = model.objects.none()
+        # queryset = model.objects.all()  # Large querysets could take long time to load all values (django-cities)
+        queryset = model.objects.none()
         self.empty_label = empty_label
 
         defaults = {
@@ -41,7 +41,7 @@ class ChainedModelChoiceField(ModelChoiceField):
         }
         defaults.update(kwargs)
 
-        super(ChainedModelChoiceField, self).__init__(queryset=self.queryset, empty_label=empty_label, *args, **defaults)
+        super(ChainedModelChoiceField, self).__init__(queryset=queryset, empty_label=empty_label, *args, **defaults)
 
     def valid_value(self, value):
         """Dynamic choices so just return True for now"""
@@ -76,11 +76,11 @@ class ChainedModelMultipleChoiceField(ModelMultipleChoiceField):
         self.parent_field = parent_field
         self.ajax_url = ajax_url
         self.model = model
-        self.queryset = model.objects.all()
+        queryset = model.objects.all()
 
         defaults = {
             'widget': ChainedSelectMultiple(parent_field=parent_field, ajax_url=ajax_url),
         }
         defaults.update(kwargs)
 
-        super(ChainedModelMultipleChoiceField, self).__init__(queryset=self.queryset, *args, **defaults)
+        super(ChainedModelMultipleChoiceField, self).__init__(queryset=queryset, *args, **defaults)
